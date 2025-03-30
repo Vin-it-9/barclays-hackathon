@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Strength Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTJzkDKpUyJ0aNjvFw4yH0DZGxfTqymkNilA&s">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    screens: {
+                        'xs': '475px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-slow {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        body {
+            background-image: radial-gradient(circle at 50% 10%, rgba(73, 93, 255, 0.1), rgba(255, 255, 255, 0) 50%),
+                             radial-gradient(circle at 85% 20%, rgba(120, 215, 255, 0.15), rgba(255, 255, 255, 0) 55%),
+                             radial-gradient(circle at 15% 40%, rgba(148, 130, 255, 0.1), rgba(255, 255, 255, 0) 45%);
+            background-attachment: fixed;
+            background-size: cover;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+        }
+        .input-focus-ring {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        .section-icon {
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+        @media (max-width: 640px) {
+            .mobile-padding-adjust {
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-gray-800 font-sans">
+    <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-3xl">
+        <header class="text-center mb-6 sm:mb-8">
+            <h1 class="text-2xl sm:text-3xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-700 text-transparent bg-clip-text mb-2 px-2">
+                Password Strength Analyzer
+            </h1>
+            <p class="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
+                Evaluate your password security with advanced AI analysis
+            </p>
+        </header>
+
+        <main>
+            <div class="flex justify-center">
+                <div class="w-full">
+                    <!-- Password Input Card -->
+                    <div class="glass-effect rounded-2xl shadow-md p-4 sm:p-5 mb-5 border border-gray-100/80 transition-all card-hover">
+                        <h2 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600 section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            Enter a password to analyze
+                        </h2>
+                        <div class="relative mb-3">
+                            <input type="password" id="passwordInput"
+                                class="w-full px-4 py-3 border border-gray-300/80 rounded-xl focus:outline-none focus:border-indigo-500 focus:input-focus-ring transition-all duration-200 text-base bg-white/80"
+                                placeholder="Enter your password" aria-label="Password">
+                            <button id="togglePassword"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 px-3 py-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-all">
+                                Show
+                            </button>
+                        </div>
+                        <div id="typingIndicator" class="hidden text-sm font-medium text-indigo-600 ml-2 animate-pulse-slow flex items-center">
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Analyzing your password...
+                        </div>
+                        <p class="text-xs sm:text-sm text-gray-500 mt-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Your password is never stored or transmitted to any external services.
+                        </p>
+                    </div>
+
+                    <!-- Results Container -->
+                    <div id="results" class="opacity-0 transform translate-y-4 transition-all duration-500 ease-in-out space-y-4" style="display: none;">
+                        <!-- Strength Score Card -->
+                        <div class="glass-effect rounded-2xl shadow-md overflow-hidden border border-gray-100/80 transition-all card-hover">
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-4 sm:px-5 py-3 border-b border-gray-100/80">
+                                <h3 class="font-semibold text-gray-800 text-base flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-indigo-600 section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                    Password Strength
+                                </h3>
+                            </div>
+                            <div class="p-4 sm:p-5">
+                                <div class="w-full bg-gray-200 rounded-full h-6 mb-4 overflow-hidden shadow-inner">
+                                    <div id="strengthProgress"
+                                        class="h-6 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-2"
+                                        style="width: 0%">
+                                        <span class="text-xs font-bold text-white drop-shadow-sm"></span>
+                                    </div>
+                                </div>
+                                <h3 id="strengthCategory" class="text-center text-xl sm:text-2xl font-bold"></h3>
+                            </div>
+                        </div>
+
+                        <!-- AI Reasoning Section -->
+                        <div id="aiReasoningSection" class="glass-effect rounded-2xl shadow-md border border-gray-100/80 transition-all card-hover">
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-4 sm:px-5 py-3 border-b border-gray-100/80">
+                                <h3 class="font-semibold text-gray-800 text-base flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-blue-600 section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                    </svg>
+                                    AI Analysis
+                                </h3>
+                            </div>
+                            <div class="p-4 sm:p-5 mobile-padding-adjust">
+                                <p id="aiReasoning" class="text-gray-700 whitespace-pre-line leading-relaxed text-xs sm:text-sm"></p>
+                            </div>
+                        </div>
+
+                        <!-- Attack Vectors Section -->
+                        <div id="attackVectorsSection" class="glass-effect rounded-2xl shadow-md border border-gray-100/80 transition-all card-hover">
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-4 sm:px-5 py-3 border-b border-gray-100/80">
+                                <h3 class="font-semibold text-gray-800 text-base flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-red-500 section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    Potential Attack Vectors
+                                </h3>
+                            </div>
+                            <div class="p-4 sm:p-5 mobile-padding-adjust">
+                                <ul id="attackVectors" class="space-y-3">
+                                    <!-- Attack vectors will be populated here -->
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Details Section -->
+                        <div class="glass-effect rounded-2xl shadow-md border border-gray-100/80 transition-all card-hover">
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-4 sm:px-5 py-3 border-b border-gray-100/80">
+                                <h3 class="font-semibold text-gray-800 text-base flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-indigo-500 section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    Analysis Details
+                                </h3>
+                            </div>
+                            <div class="p-4 sm:p-5 mobile-padding-adjust overflow-x-auto">
+                                <div class="min-w-full">
+                                    <table class="w-full">
+                                        <tbody id="analysisDetails" class="divide-y divide-gray-200 text-xs sm:text-sm">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Suggestions Section -->
+                        <div class="glass-effect rounded-2xl shadow-md border border-gray-100/80 transition-all card-hover">
+                            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 px-4 sm:px-5 py-3 border-b border-gray-100/80">
+                                <h3 class="font-semibold text-gray-800 text-base flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 text-green-500 section-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    Suggestions to Improve
+                                </h3>
+                            </div>
+                            <div class="p-4 sm:p-5 mobile-padding-adjust">
+                                <ul id="suggestions" class="space-y-3 text-xs sm:text-sm">
+                                    <!-- Suggestions will be populated here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
