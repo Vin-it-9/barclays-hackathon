@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const attackVectorsSection = document.getElementById('attackVectorsSection');
 
     let debounceTimer;
-    const DEBOUNCE_DELAY = 600;
+    const DEBOUNCE_DELAY = 300;
 
     toggleButton.addEventListener('click', function() {
         if (passwordInput.type === 'password') {
