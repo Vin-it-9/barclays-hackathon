@@ -1,40 +1,77 @@
 import re
 import math
 import zxcvbn
+import string
 from collections import Counter
 
 
 class PasswordAnalyzer:
     def __init__(self):
+
         self.common_patterns = [
-            r'12345',
-            r'qwerty',
-            r'password',
-            r'admin',
-            r'welcome'
+            r'12345\d*', r'qwerty\w*', r'password\d*', r'admin\d*', r'welcome\d*', r'abcd\w*', r'1234\d*', r'0123\d*',
+            r'9876\d*', r'zxcvb\w*', r'asdfg\w*', r'letmein\d*', r'trustno\d*', r'monkey\d*', r'dragon\d*',r'master\d*',
+            r'football\d*', r'baseball\d*', r'soccer\d*', r'hockey\d*', r'superman\d*', r'batman\d*', r'starwars\d*',
+            r'abc123\w*', r'test\d*', r'guest\d*', r'login\d*', r'pass\w*', r'secret\d*', r'shadow\d*',
+            r'january\d*', r'february\d*', r'march\d*', r'april\d*', r'may\d*', r'june\d*', r'july\d*',
+            r'august\d*', r'september\d*', r'october\d*', r'november\d*', r'december\d*', r'winter\d*',
+            r'spring\d*', r'summer\d*', r'fall\d*', r'autumn\d*', r'111+', r'222+', r'333+', r'444+',
+            r'555+', r'666+', r'777+', r'888+', r'999+', r'000+', r'aaa+', r'p@ssw0rd', r'@dmin', r's3cur3',
+            r'l0gin', r'w3lc0me', r'19\d\d', r'20\d\d', r'\d\d\d\d\d\d', r'yankees\d*', r'cowboys\d*',
+            r'lakers\d*', r'patriots\d*', r'redsox\d*', r'arsenal\d*', r'chelsea\d*', r'liverpool\d*',
+            r'admin123\d*', r'root123\d*', r'cisco\d*', r'oracle\d*', r'database\d*', r'server\d*',
+            r'firewall\d*', r'system\d*', r'iloveyou\d*', r'ilove\w+', r'princessa\d*', r'princess\d*',
+            r'sunshine\d*', r'beautiful\d*', r'whatever\d*', r'nothing\d*', r'qazwsx\w*', r'zxcvbn\w*',
+            r'qwertyuiop\w*', r'asdfghjkl\w*', r'zxcvbnm\w*', r'microsoft\d*', r'google\d*', r'apple\d*',
+            r'amazon\d*', r'facebook\d*', r'twitter\d*', r'linkedin\d*', r'netflix\d*', r'badword\d*',
+            r'bond007', r'agent007', r'jordan23', r'passw0rd\d*', r'passwd\d*', r'p455w0rd\d*',
+            r'pa55word\d*', r'first\w+name', r'maiden\w+name', r'pet\w+name', r'school\w+name',
+            r'favorite\w+', r'changeme\d*', r'default\d*', r'temppass\d*'
         ]
 
         self.hashing_times = {
-            'md5': 0.000001,
-            'sha256': 0.00001,
-            'bcrypt': 0.1,
-            'argon2': 1.0
+            'md5': 0.0000005,
+            'sha1': 0.0000008,
+            'sha256': 0.000005,
+            'sha512': 0.000008,
+            'bcrypt': 0.08,
+            'pbkdf2_100000': 0.05,
+            'argon2id': 0.9,
+            'argon2i': 1.0,
+            'argon2d': 0.85,
+            'balloon': 1.2,
+            'scrypt': 0.7,
+            'yescrypt': 1.1,
+            'gpu_optimized_md5': 0.00000001,
+            'asic_sha256': 0.0000001,
+            'quantum_resistant': 5.0
         }
 
-    def calculate_entropy(self, password):
 
+
+    def calculate_entropy(self, password):
         if not password:
             return 0
 
-        char_count = Counter(password)
-        length = len(password)
+        pool = 0
 
-        entropy = 0
-        for count in char_count.values():
-            probability = count / length
-            entropy -= probability * math.log2(probability)
+        if any(c.islower() for c in password):
+            pool += 26
 
-        return entropy * length
+        if any(c.isupper() for c in password):
+            pool += 26
+
+        if any(c.isdigit() for c in password):
+            pool += 10
+
+        if any(c in string.punctuation for c in password):
+            pool += len(string.punctuation)
+
+        if pool == 0:
+            return 0
+
+        return len(password) * math.log2(pool)
+
 
     def check_common_patterns(self, password):
 
