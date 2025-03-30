@@ -60,7 +60,8 @@ class PasswordFeatureExtractor:
         keyboard_rows = [
             "qwertyuiop",
             "asdfghjkl",
-            "zxcvbnm"
+            "zxcvbnm",
+            "1234567890"
         ]
 
         pattern_count = 0
