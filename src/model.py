@@ -59,7 +59,10 @@ class PasswordStrengthModel:
 
         return accuracy
 
-    def prepare_training_data_from_rockyou(self):
+    def prepare_training_data_from_rockyou(self, sample_size=500000, random_seed=42):
+
+        import pandas as pd
+        from collections import Counter
 
         processor = PasswordDataProcessor()
         df = processor.load_rockyou_dataset()
@@ -68,46 +71,122 @@ class PasswordStrengthModel:
             print("Failed to load dataset")
             return None, None
 
-        sample_size = min(100000, len(df))
-        df_sample = df.sample(sample_size, random_state=42)
+        print(f"Loaded dataset with {len(df)} passwords")
+
+        df['length'] = df['password'].apply(len)
+        length_bins = [0, 6, 8, 10, 12, float('inf')]
+        df['length_bin'] = pd.cut(df['length'], bins=length_bins, labels=False)
+
+        actual_sample_size = min(sample_size, len(df))
+
+        try:
+            df_sample = df.groupby('length_bin', group_keys=False).apply(
+                lambda x: x.sample(min(len(x), int(actual_sample_size * len(x) / len(df))), random_state=random_seed)
+            )
+        except:
+            print("Falling back to random sampling")
+            df_sample = df.sample(actual_sample_size, random_state=random_seed)
 
         passwords = df_sample['password'].tolist()
 
+        common_passwords = set(processor.get_common_passwords(top_n=20000))
+
+        pattern_regex = [
+            r'^\d{6,8}$',
+            r'^[a-z]+\d{1,4}$',
+            r'^\d{1,4}[a-z]+$',
+            r'^(19|20)\d{2}$',
+            r'^qwerty',
+            r'^asdf',
+            r'^1234',
+            r'^abcd',
+        ]
+
+        l33t_patterns = [
+            (r'a', '@'), (r'a', '4'),
+            (r'e', '3'), (r'i', '1'),
+            (r'o', '0'), (r's', '$'),
+            (r'l', '1'), (r't', '7')
+        ]
+
         labels = []
-        common_passwords = set(processor.get_common_passwords(top_n=10000))
+        features = []
 
         for pwd in passwords:
-            if pwd in common_passwords:
-                labels.append(0)
+            feature_dict = {
+                'length': len(pwd),
+                'has_upper': any(c.isupper() for c in pwd),
+                'has_lower': any(c.islower() for c in pwd),
+                'has_digit': any(c.isdigit() for c in pwd),
+                'has_special': any(not c.isalnum() for c in pwd),
+                'in_common_list': pwd in common_passwords,
+            }
+
+            if feature_dict['in_common_list']:
+                labels.append(0)  # Very weak
+                features.append(feature_dict)
                 continue
 
-            length = len(pwd)
-            has_upper = any(c.isupper() for c in pwd)
-            has_lower = any(c.islower() for c in pwd)
-            has_digit = any(c.isdigit() for c in pwd)
-            has_special = any(not c.isalnum() for c in pwd)
+            length = feature_dict['length']
+            has_upper = feature_dict['has_upper']
+            has_lower = feature_dict['has_lower']
+            has_digit = feature_dict['has_digit']
+            has_special = feature_dict['has_special']
 
             char_variety = sum([has_upper, has_lower, has_digit, has_special])
+
+            char_counts = Counter(pwd)
+            total_chars = len(pwd)
+            entropy = sum(-(count / total_chars) * (count / total_chars) for count in char_counts.values())
+            feature_dict['entropy'] = entropy
+
+            sequential_count = 0
+            for i in range(1, len(pwd)):
+                if ord(pwd[i]) - ord(pwd[i - 1]) == 1:
+                    sequential_count += 1
+            feature_dict['sequential_chars'] = sequential_count
 
             if length < 6:
                 labels.append(0)
             elif length < 8:
-                labels.append(1)
-            elif length < 10:
-                if char_variety >= 3:
-                    labels.append(2)
+                if char_variety <= 1:
+                    labels.append(0)
                 else:
                     labels.append(1)
-            elif length < 12:
-                if char_variety >= 3:
-                    labels.append(3)
+            elif length < 10:
+                if char_variety == 1:
+                    labels.append(1)
+                elif char_variety == 2:
+                    labels.append(2)
                 else:
                     labels.append(2)
-            else:
-                if char_variety >= 3:
-                    labels.append(4)
+            elif length < 12:
+                if char_variety <= 2:
+                    labels.append(2)
+                elif char_variety == 3:
+                    labels.append(3)
                 else:
                     labels.append(3)
+            else:
+                if char_variety <= 2:
+                    labels.append(2)
+                elif char_variety == 3:
+                    labels.append(3)
+                else:
+                    labels.append(4)
+
+            import re
+            for pattern in pattern_regex:
+                if re.search(pattern, pwd, re.IGNORECASE):
+                    labels[-1] = max(0, labels[-1] - 1)
+                    break
+
+            features.append(feature_dict)
+
+        label_counts = Counter(labels)
+        print("Password strength distribution:")
+        for label, count in sorted(label_counts.items()):
+            print(f"Strength {label}: {count} passwords ({count / len(labels):.1%})")
 
         print(f"Prepared {len(passwords)} passwords with labels")
         return passwords, labels
