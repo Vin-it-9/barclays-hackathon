@@ -59,7 +59,8 @@ class PasswordStrengthModel:
 
         return accuracy
 
-    def prepare_training_data_from_rockyou(self, sample_size=500000, random_seed=42):
+
+    def prepare_training_data_from_rockyou(self, sample_size=1000000, random_seed=42):
 
         import pandas as pd
         from collections import Counter
