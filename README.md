@@ -1,13 +1,9 @@
-# 🔐 SecurePass Analyzer
-
-[![Python](https://img.shields.io/badge/Python-43.2%25-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
-[![JavaScript](https://img.shields.io/badge/JavaScript-19.7%25-F7DF1E?style=flat&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![HTML](https://img.shields.io/badge/HTML-18.4%25-E34F26?style=flat&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+# 🔐 Password Strength Analyzer
 
 
-> An intelligent password strength analysis tool with AI-powered security enhancement recommendations developed for the Barclays Hackathon 2025.
+> An intelligent password strength analysis tool with GenAI-powered security enhancement recommendations developed for the Barclays Hackathon 2025.
 
-![Password Security Banner](https://via.placeholder.com/800x200?text=SecurePass+Analyzer)
+![Password Security Banner](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7mTaZ1DZ-cVEKusUqoJttE96-c4741toY7Q&s)
 
 ## 📋 Table of Contents
 
@@ -21,8 +17,6 @@
 - [API Reference](#-api-reference)
 - [Frontend Components](#-frontend-components)
 - [Project Structure](#-project-structure)
-- [Contributing](#-contributing)
-- [License](#-license)
 
 ## 🔍 Overview
 
@@ -52,6 +46,7 @@ This project was developed for the Barclays Hackathon 2025, addressing the criti
 - **Frontend**: JavaScript & HTML
   - Real-time password strength visualization
   - Interactive user interface
+  - Tailwind CSS for responsive styling
   - AJAX for asynchronous server interactions
   
 ## 📦 Installation
