@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     let debounceTimer;
-    const DEBOUNCE_DELAY = 300;
+    const DEBOUNCE_DELAY = 600;
 
     toggleButton.classList.add('transition-colors', 'duration-300', 'ease-in-out');
 
